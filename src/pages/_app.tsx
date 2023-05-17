@@ -5,6 +5,7 @@ import Head from "next/head";
 import { api } from "~/utils/api";
 
 import "~/styles/globals.css";
+import SideBar from "~/components/SideBar";
 
 
 const MyApp: AppType<{ session: Session | null }> = ({
@@ -17,9 +18,9 @@ const MyApp: AppType<{ session: Session | null }> = ({
         <title>Twitter Clone </title>
         <meta name="description" content="Twitter clone using T3 stack" />
       </Head>
-      <div className="container mx-auto flex">
+      <div className="container mx-auto flex items-start">
+          <SideBar/>
         <div className="min-h-screen flex-grow border-x">
-          {/* <SideNav/> */}
           <Component {...pageProps} />
         </div>
       </div>
