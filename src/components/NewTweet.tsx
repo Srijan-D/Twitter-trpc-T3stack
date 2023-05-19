@@ -1,25 +1,32 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useCallback, useLayoutEffect, useRef } from 'react'
 import Button from './Button'
 import ProfilePicture from './ProfilePicture'
 import { useSession } from 'next-auth/react'
 import { useState } from 'react'
 
-function updateTextAreaHeight(textarea: HTMLTextAreaElement) {
-    if (textarea == null) return
-    textarea.style.height = "0"
-    textarea.style.height = `${textarea.scrollHeight}px`
+
+function updateTextAreaHeight(textArea?: HTMLTextAreaElement) {
+    if (textArea == null) return
+    textArea.style.height = '0px'
+    textArea.style.height = ` ${textArea.scrollHeight}px`
 }
 
-function NewTweet() {
+
+export default function NewTweet() {
     const session = useSession()
-    const [text, setText] = useState('')
-    const textAreaRef = useRef<HTMLTextAreaElement>(null)
+    const [text, setText] = useState("")
 
+    const textAreaRef = useRef<HTMLTextAreaElement>()
 
+    const inputRef = useCallback((textArea: HTMLTextAreaElement) => {
+        updateTextAreaHeight(textArea)
+        textAreaRef.current = textArea
+    },[])
 
-    useEffect(() => {
-        updateTextAreaHeight
+    useLayoutEffect(() => {
+        updateTextAreaHeight(textAreaRef.current)
     }, [text])
+
 
     if (session.status !== 'authenticated' || session.data?.user == null) return null
 
@@ -29,10 +36,10 @@ function NewTweet() {
                 <ProfilePicture src={session.data.user.image} />
                 {/* text area */}
                 <textarea
-                    ref={textAreaRef}
-                    onChange={e => setText(e.target.value)}
+                    ref={inputRef}
                     value={text}
-                    style={{ height: 'max-content' }}
+                    onChange={e => setText(e.target.value)}
+                    style={{ height: 0 }}
                     className='flex-grow resize-none  overflow-hidden p-4 text-lg outline-none' placeholder='What is happening?!' />
             </div>
             <Button className='self-end' >Tweet</Button>
@@ -40,4 +47,4 @@ function NewTweet() {
     )
 }
 
-export default NewTweet
+
