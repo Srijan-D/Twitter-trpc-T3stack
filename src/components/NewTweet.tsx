@@ -36,10 +36,12 @@ function Form() {
         updateTextAreaHeight(textAreaRef.current)
     }, [text])
 
-    const createTweet = api.tweet.create.useMutation({onSuccess:(data)=>{
-        
-        setText('')
-    }})
+    const createTweet = api.tweet.create.useMutation({
+        onSuccess: (data) => {
+
+            setText('')
+        }
+    })
 
     if (session.status !== 'authenticated' || session.data?.user == null) return null
 
