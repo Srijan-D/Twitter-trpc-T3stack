@@ -15,7 +15,7 @@ export const tweetRouter = createTRPCRouter({
         id: z.string(),
         createdAt: z.date()
       }).optional()
-     })).query(async ({ input: { limit = 10, cursor }, ctx }) => {
+    })).query(async ({ input: { limit = 10, cursor }, ctx }) => {
 
       const currentUserId = ctx.session?.user.id;
 
@@ -27,9 +27,9 @@ export const tweetRouter = createTRPCRouter({
           id: true,
           content: true,
           createdAt: true,
-          _count: {
-            select: { likes: true }
-          },
+          _count: { select: { likes: true } },
+          likes:
+            currentUserId == null ? false : { where: { userId: currentUserId } },
           user: {
             select: { name: true, id: true, image: true }
           }
@@ -52,8 +52,8 @@ export const tweetRouter = createTRPCRouter({
             id: tweet.id,
             content: tweet.content,
             createdAt: tweet.createdAt,
-            likesCount: tweet._count.likes,
-            isLiked: currentUserId ? tweet._count.likes > 0 : false,
+            likeCount: tweet._count.likes,
+            likedByMe: tweet.likes?.length > 0,
             user: tweet.user
           }
         }), nextCursor

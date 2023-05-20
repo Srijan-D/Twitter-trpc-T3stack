@@ -16,13 +16,13 @@ const Home: NextPage = () => {
 };
 function RecentTweets() {
   const tweets = api.tweet.infiniteScroll.useInfiniteQuery({},
-    { getNextPageParam: (lastPage) => lastPage.nextPageCursor })
+    { getNextPageParam: (lastPage) => lastPage.nextCursor })
 
   return <ListOFtweets
     tweets={tweets.data?.pages.flatMap((page) => page.tweets)}
     isLoading={tweets.isLoading}
     isError={tweets.isError}
-    hasMore={tweets.hasNextPage}
+    hasMore={(tweets.hasNextPage)!}
     fetchNextPage={tweets.fetchNextPage}
   />;
 }
