@@ -3,6 +3,7 @@ import InfiniteScroll from "react-infinite-scroll-component"
 import ProfilePicture from "./ProfilePicture"
 import { useSession } from 'next-auth/react'
 import { VscHeart, VscHeartFilled } from 'react-icons/vsc'
+import { IconHoverEffect } from "./IconHoverEffect"
 
 type Tweet = {
     id: string
@@ -71,7 +72,7 @@ function TweetCard({ id, user, content, createdAt, likeCount, liked }: Tweet) {
             </div>
             <p className="whitespace-pre-wrap">{content}</p>
             <HeartButton likedByMe={liked} likeCount={likeCount} />
-            
+
         </div>
     </li>
 }
@@ -89,7 +90,17 @@ function HeartButton({ likedByMe, likeCount }: HeartButton) {
     }
     return (
         <button className={`group items-center gap-1 self-start flex transition-colors duration-200 
-        ${likedByMe?"text-red-500":}`}></button>
+        ${likedByMe ? "text-red-500" : "text-gray-500 hover:text-red-500 focus-visible:text-red-500"}`}>
+            <IconHoverEffect red>
+                <HeartIcon
+                    className={`transition-colors duration-200 ${likedByMe
+                        ? "fill-red-500"
+                        : "fill-gray-500 group-hover:fill-red-500 group-focus-visible:fill-red-500"
+                        }`}
+                />
+            </IconHoverEffect>
+            <span>{likeCount}</span>
+        </button>
     )
 
 }
