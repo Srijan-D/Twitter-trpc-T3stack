@@ -1,5 +1,7 @@
 import { type NextPage } from "next";
 import NewTweet from "~/components/NewTweet";
+import ListOFtweets from "~/components/ListOFtweets";
+import { api } from "~/utils/api";
 
 const Home: NextPage = () => {
   return (<>
@@ -10,13 +12,19 @@ const Home: NextPage = () => {
       <NewTweet />
       <RecentTweets />
     </header>
-  </>
-  );
+  </>);
 };
 function RecentTweets() {
-  const tweets = [];
+  const tweets = api.tweet.infiniteScroll.useInfiniteQuery({},
+    { getNextPageParam: (lastPage) => lastPage.nextPageCursor })
 
-  return <ListOFtweets tweets={tweets} />;
+  return <ListOFtweets
+    tweets={tweets.data?.pages.flatMap((page) => page.tweets)}
+    isLoading={tweets.isLoading}
+    isError={tweets.isError}
+    hasMore={tweets.hasNextPage}
+    fetchNextPage={tweets.fetchNextPage}
+  />;
 }
 
 export default Home;
