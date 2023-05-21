@@ -21,9 +21,22 @@ const ProfilePage: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({
     const tweets = api.tweet.infiniteProfileTweets.useInfiniteQuery({ userId: id }, {
         getNextPageParam: (lastPage) => { lastPage.nextCursor }
     })
+    const trpcUtils = api.useContext()
     const toggleFollow = api.profile.toggleFollow.useMutation({
-        onSuccess: ({ addedFollow }) => { },
+        onSuccess: ({ addedFollow }) => {
+            trpcUtils.profile.getProfile.setData({ id }, oldData => {
+                if (oldData == null) return
+                const count = addedFollow ? 1 : -1
+                return {
+                    ...oldData,
+                    isFollowing: addedFollow,
+                    followersCount: oldData.followersCount + count
+                }
+            },
+            )
+        }
     })
+
 
     if (profile == null || profile.name == null) return <ErrorPage statusCode={404} />
 
