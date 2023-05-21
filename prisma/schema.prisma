@@ -68,17 +68,19 @@ model Session {
 }
 
 model User {
-    id            String    @id @default(cuid())
+   id            String    @id @default(cuid())
     name          String?
     email         String?   @unique
     emailVerified DateTime?
     image         String?
     accounts      Account[]
     sessions      Session[]
-    tweets        Tweet[]
-    likes         Like[]
-    followers     User[]    @relation(name: "Followers")
-    following     User[]    @relation(name: "Followers")
+
+    // Non-Next Auth
+    tweets    Tweet[]
+    likes     Like[]
+    followers User[]  @relation(name: "Followers")
+    follows   User[]  @relation(name: "Followers")
 }
 
 model VerificationToken {

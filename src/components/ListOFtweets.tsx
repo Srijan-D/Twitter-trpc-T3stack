@@ -94,6 +94,8 @@ function TweetCard({ id, user, content, createdAt, likeCount, likedByMe }: Tweet
             }
 
             trpcUtils.tweet.infiniteScroll.setInfiniteData({}, updateData)
+            trpcUtils.tweet.infiniteScroll.setInfiniteData({ onlyFollowing: true }, updateData)
+            trpcUtils.tweet.infiniteProfileTweets.setInfiniteData({ userId: user.id }, updateData)
         },
     })
     const handleLike = () => {

@@ -9,12 +9,18 @@ import Link from 'next/link'
 import { IconHoverEffect } from '~/components/IconHoverEffect'
 import { VscArrowLeft } from 'react-icons/vsc'
 import ProfilePicture from '~/components/ProfilePicture'
+import ListOFtweets from "~/components/ListOFtweets";
+import { useSession } from 'next-auth/react'
+import Button from '~/components/Button'
 
 
 const ProfilePage: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({
     id
 }) => {
     const { data: profile } = api.profile.getProfile.useQuery({ id })
+    const tweets = api.tweet.infiniteProfileTweets.useInfiniteQuery({ userId: id }, {
+        getNextPageParam: (lastPage) => { lastPage.nextCursor }
+    })
 
     if (profile == null || profile.name == null) return <ErrorPage statusCode={404} />
 
@@ -30,15 +36,41 @@ const ProfilePage: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({
             </Link>
             <ProfilePicture src={profile.image} className='w-10 h-10 rounded-full' />
             <div className='ml-2 flex-grow'>
-            <h1 className='text-lg font-bold'>{profile.name}</h1>
-            <div className=' text-gray-500'>
-                {profile.tweetsCount}
+                <h1 className='text-lg font-bold'>{profile.name}</h1>
+                <div className=' text-gray-500'>
+                    {profile.tweetsCount}
+                    {pluralRules(profile.tweetsCount, " Tweet", " Tweets")}
+                    {" • "}
+                    {profile.followersCount}
+                    {pluralRules(profile.followersCount, " Follower", " Followers")}
+                    {" • "}
+                    {profile.followsCount} Follows
+                </div>
             </div>
-            </div>
+            <FollowButton userId={id} isFollowing={profile.isFollowing} />
         </header>
+        <main><ListOFtweets
+            tweets={tweets.data?.pages.flatMap((page) => page.tweets)}
+            isLoading={tweets.isLoading}
+            isError={tweets.isError}
+            hasMore={tweets.hasNextPage}
+            fetchNextPage={tweets.fetchNextPage}
+        /></main>
+
     </>
     )
 }
+function FollowButton({ userId, isFollowing, onClick }: { userId: string, isFollowing: boolean, onClick?: () => void }) {
+    const session = useSession()
+    if (session.status !== "authenticated" || session.data.user.id === userId) return null
+    return <Button onClick={onClick} small gray={isFollowing} >{isFollowing ? "Unfollow" : "Follow"}</Button>
+}
+const Intlplural = new Intl.PluralRules()
+
+function pluralRules(number: number, singular: string, plural: string) {
+    return Intlplural.select(number) === "one" ? singular : plural
+}
+
 export const getStaticPaths: GetStaticPaths = () => {
     return {
         paths: [],
