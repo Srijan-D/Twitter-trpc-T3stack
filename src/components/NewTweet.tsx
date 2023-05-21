@@ -36,10 +36,36 @@ function Form() {
         updateTextAreaHeight(textAreaRef.current)
     }, [text])
 
+    const trpcUtils = api.useContext()
     const createTweet = api.tweet.create.useMutation({
         onSuccess: (data) => {
-
             setText('')
+            if (session.status !== 'authenticated') return
+            trpcUtils.tweet.infiniteScroll.setInfiniteData({}, (oldData) => {
+
+                if (oldData == null || oldData.pages[0] == null) return
+
+                const cacheTweet = {
+                    ...data,
+                    likeCount: 0,
+                    likedByMe: false,
+                    user: {
+                        id: session.data.user.id,
+                        name: session.data.user.name || null,
+                        image: session.data.user.image || null,
+                    },
+                };
+                return {
+                    ...oldData,
+                    pages: [
+                        {
+                            ...oldData.pages[0],
+                            tweets: [cacheTweet, ...oldData.pages[0].tweets]
+                        },
+                        ...oldData.pages.slice(1)
+                    ],
+                }
+            })
         }
     })
 
