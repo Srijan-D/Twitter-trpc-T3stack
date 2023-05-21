@@ -5,7 +5,7 @@ import { api } from "~/utils/api";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 
-const pages = ["Recent", "Following"]
+const pages = ["Recent", "Following"] as const
 
 const Home: NextPage = () => {
 
@@ -19,12 +19,15 @@ const Home: NextPage = () => {
         ">Home</h1>
       {session.status === 'authenticated' && (
         <div className="flex">
-          {pages}
+          {pages.map((page) => {
+            return <button key={page} className={`flex-grow p-2 hover:bg-gray-200 focus-visible:bg-gray-200 ${page === selectedPage ?
+              "border-b-4 border-b-blue-500 font-bold" : ""}`} onClick={() => setSelectedPage(page)}>{page}</button>
+          })}
         </div>
       )}
     </header>
     <NewTweet />
-    <RecentTweets />
+    {selectedPage === "Recent" ? <RecentTweets /> : <FollowingTweets />}
   </>);
 };
 function RecentTweets() {
@@ -39,6 +42,21 @@ function RecentTweets() {
     fetchNextPage={tweets.fetchNextPage}
   />;
 }
+function FollowingTweets() {
+  const tweets = api.tweet.infiniteScroll.useInfiniteQuery({
+    onlyFollowing: true
+  },
+    { getNextPageParam: (lastPage) => lastPage.nextCursor })
+
+  return <ListOFtweets
+    tweets={tweets.data?.pages.flatMap((page) => page.tweets)}
+    isLoading={tweets.isLoading}
+    isError={tweets.isError}
+    hasMore={tweets.hasNextPage}
+    fetchNextPage={tweets.fetchNextPage}
+  />;
+}
+
 
 export default Home;
 

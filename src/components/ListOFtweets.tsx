@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react'
 import { VscHeart, VscHeartFilled } from 'react-icons/vsc'
 import { IconHoverEffect } from "./IconHoverEffect"
 import { api } from "~/utils/api"
+import Loading from "./Loading"
 
 
 type Tweet = {
@@ -12,7 +13,7 @@ type Tweet = {
     content: string
     createdAt: Date
     likeCount: number
-    liked: boolean
+    likedByMe: boolean;
     user: {
         id: string
         name: string | null
@@ -24,9 +25,9 @@ type Tweet = {
 type InfiniteTweetListProps = {
     isLoading: boolean
     isError: boolean
-    hasMore: boolean
+    hasMore: boolean | undefined
     fetchNextPage: () => Promise<unknown>
-    tweets: Tweet[]
+    tweets?: Tweet[]
 }
 
 type HeartButton = {
@@ -38,9 +39,9 @@ type HeartButton = {
 
 
 
-export default function ListOFtweets({ tweets, isError, isLoading, fetchNextPage, hasMore }: InfiniteTweetListProps) {
+export default function ListOFtweets({ tweets, isError, isLoading, fetchNextPage, hasMore = false }: InfiniteTweetListProps) {
 
-    if (isLoading) return <p>Loading...</p>
+    if (isLoading) return <Loading />
     if (isError) return <p>Error...</p>
     if (tweets == null) return null
     if (tweets.length === 0) return <h2 className="my-4 text-center text-2xl text-gray-500">No tweets</h2>
@@ -51,7 +52,7 @@ export default function ListOFtweets({ tweets, isError, isLoading, fetchNextPage
             dataLength={tweets.length}
             next={fetchNextPage}
             hasMore={hasMore}
-            loader={<p>Loading...</p>}
+            loader={<Loading />}
         >
             {tweets.map((tweet) => {
                 return <TweetCard key={tweet.id} {...tweet} />
@@ -62,7 +63,7 @@ export default function ListOFtweets({ tweets, isError, isLoading, fetchNextPage
 }
 
 
-function TweetCard({ id, user, content, createdAt, likeCount, liked }: Tweet) {
+function TweetCard({ id, user, content, createdAt, likeCount, likedByMe }: Tweet) {
 
     const trpcUtils = api.useContext()
     const toggleLike = api.tweet.toggleLike.useMutation({
@@ -81,7 +82,7 @@ function TweetCard({ id, user, content, createdAt, likeCount, liked }: Tweet) {
                                     return {
                                         ...tweet,
                                         likeCount: tweet.likeCount + count,
-                                        liked: addedLike,
+                                        likedByMe: addedLike,
                                     }
                                 }
                                 return tweet
@@ -113,7 +114,7 @@ function TweetCard({ id, user, content, createdAt, likeCount, liked }: Tweet) {
                 <span className="text-gray-500">{dateTimeFormatter.format(createdAt)}</span>
             </div>
             <p className="whitespace-pre-wrap">{content}</p>
-            <HeartButton onClick={handleLike} isLoading={toggleLike.isLoading} likedByMe={liked} likeCount={likeCount} />
+            <HeartButton onClick={handleLike} isLoading={toggleLike.isLoading} likedByMe={likedByMe} likeCount={likeCount} />
 
         </div>
     </li>
