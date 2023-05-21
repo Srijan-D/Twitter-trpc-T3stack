@@ -21,6 +21,9 @@ const ProfilePage: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({
     const tweets = api.tweet.infiniteProfileTweets.useInfiniteQuery({ userId: id }, {
         getNextPageParam: (lastPage) => { lastPage.nextCursor }
     })
+    const toggleFollow = api.profile.toggleFollow.useMutation({
+        onSuccess: ({ addedFollow }) => { },
+    })
 
     if (profile == null || profile.name == null) return <ErrorPage statusCode={404} />
 
@@ -47,7 +50,8 @@ const ProfilePage: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({
                     {profile.followsCount} Follows
                 </div>
             </div>
-            <FollowButton userId={id} isFollowing={profile.isFollowing} />
+            <FollowButton isLoading={toggleFollow.isLoading} userId={id} isFollowing={profile.isFollowing}
+                onClick={() => toggleFollow.mutate({ userId: id })} />
         </header>
         <main><ListOFtweets
             tweets={tweets.data?.pages.flatMap((page) => page.tweets)}
@@ -60,10 +64,10 @@ const ProfilePage: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({
     </>
     )
 }
-function FollowButton({ userId, isFollowing, onClick }: { userId: string, isFollowing: boolean, onClick?: () => void }) {
+function FollowButton({ userId, isFollowing, onClick, isLoading }: { userId: string, isFollowing: boolean, onClick?: () => void, isLoading?: boolean }) {
     const session = useSession()
     if (session.status !== "authenticated" || session.data.user.id === userId) return null
-    return <Button onClick={onClick} small gray={isFollowing} >{isFollowing ? "Unfollow" : "Follow"}</Button>
+    return <Button disabled={isLoading} onClick={onClick} small gray={isFollowing} >{isFollowing ? "Unfollow" : "Follow"}</Button>
 }
 const Intlplural = new Intl.PluralRules()
 
